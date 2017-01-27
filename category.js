@@ -2,7 +2,6 @@
  * Created by muna on 25/01/17.
  */
 var mongoose = require('mongoose');
-
 var categorySchema = {
   _id: {
       type: String,
