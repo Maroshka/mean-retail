@@ -23,7 +23,7 @@ module.exports = new mongoose.Schema({
         },
         cart: [{
             product:{
-                type: mongoose.Schema.Types.ObjectID
+                type: mongoose.Schema.Types.ObjectId
             },
             quantity:{
                 type: Number,
@@ -33,3 +33,7 @@ module.exports = new mongoose.Schema({
         }]
     }
 });
+
+
+module.exports.set('toObject', { virtuals: true });
+module.exports.set('toJSON', { virtuals: true });
