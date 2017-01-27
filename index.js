@@ -3,7 +3,6 @@
  */
 var mongoose = require('mongoose');
 var wagner = require('wagner-core');
-var models = require('./models')(wagner);
 
 var app = require('./server')(wagner);
 app.listen(3000);

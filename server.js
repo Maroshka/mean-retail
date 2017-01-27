@@ -3,6 +3,7 @@
  */
 var express = require('express');
 var wagner = require('wagner-core');
+require('./models')(wagner);
 
 module.exports = function(wagner){
   var app = express();
@@ -14,7 +15,7 @@ module.exports = function(wagner){
         res.send('Page for user '+req.params.user+' with option '+ req.query.option);
     });
 
-    app.use(require('./api')(wagner));
+    app.use('/api/v1',require('./api')(wagner));
 
     return app;
 };

@@ -2,9 +2,9 @@
  * Created by muna on 25/01/17.
  */
 
-modules.exports = function () {
+module.exports = function () {
   return {
-      'USD':1,
-      'JD':0.71
+      USD:1,
+      JD :0.71
   };
 };
