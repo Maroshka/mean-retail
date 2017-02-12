@@ -53,5 +53,7 @@ schema.virtual('displayPrice').get(function(){
     return currencySymbols[this.price.currency]+' '+this.price.amount;
 });
 
+schema.index({name:'text'});
+
 module.exports = new mongoose.Schema(productSchema);
 module.exports.productSchema = productSchema;

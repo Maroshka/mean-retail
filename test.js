@@ -14,12 +14,15 @@ describe('Category API', function(){
   var Category;
   var Product;
   var User;
+  var Stripe;
   before(function(){
     var app = express();
     var models = require('./models')(wagner);
+    var dependencies = require('./dependencies')(wagner);
     Category = models.Category;
     Product = models.Product;
     User = models.User;
+    Stripe = dependencies.Stripe;
     app.use(function(req, res, next){
       User.findOne({}, function(error, user){
         assert.ifError(error);
@@ -228,5 +231,46 @@ describe('Category API', function(){
         done();
       });
     });
+  });
+
+  // it('checks the /me route', function(done){
+  //   var url = URL_ROOT+'/me';
+  //   superagent.get(url, function(error, res){
+  //     assert.ifError(error);
+  //
+  //     done();
+  //   });
+  // });
+
+  it('checks the /checkout route', function(done){
+    var url = URL_ROOT + '/checkout';
+    User.findOne({}, function(error, user){
+      assert.ifError(error);
+      user.data.cart = [{product: PRODUCT_ID, quantity:1}];
+      user.save(function(error){
+        assert.ifError(error);
+        superagent.post(url).send({stripeToken: {
+                  number: '4242424242424242',
+                  cvc: '123',
+                  exp_month: '12',
+                  exp_year: '2016'
+                }
+       }).end(function(error, res){
+         assert.ifError(error);
+         assert.equal(res.status, 200);
+         var result;
+         assert.doesNotThrow(function(){
+           result = JSON.parse(res.text);
+         });
+         assert.ok(result.id);
+         tripe.charges.retrieve(result.id, function(error, charge) {
+              assert.ifError(error);
+              assert.ok(charge);
+              assert.equal(charge.amount, 2000 * 100); // 2000 USD
+              done();
+            });
+       });
+     });
+   });
   });
 });

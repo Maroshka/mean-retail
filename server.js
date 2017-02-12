@@ -8,6 +8,7 @@ require('./models')(wagner);
 module.exports = function(wagner){
   var app = express();
 
+    wagner.invoke(require('./auth'), { app: app });
     app.get('/',function(req, res){
         res.send('Hello, world!');
     });

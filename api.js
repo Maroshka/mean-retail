@@ -1,6 +1,7 @@
 var express = require('express');
 var status  = require('http-status');
 var bodyparser = require('body-parser');
+var _ = require('underscore');
 
 module.exports = function(wagner){
   var api = express.Router();
@@ -49,13 +50,47 @@ module.exports = function(wagner){
     };
   }));
 
-  api.get('/me', wagner.invoke(function(User){
+  api.post('/checkout', wagner.invoke(function(User, Stripe){
     return function(req, res){
       if(!req.user){
-        return res.status(status.UNAUTHORIZED).json({error:'Not logged in!'});
+        return res.status(status.UNAUTHORIZED).json({error:"You're un authorized to perform this action!"});
       }
-      res.user.populate({path:'data.cart.product', model:'Product'}, handleRes.bind(null, 'user', res));
+      req.user.populate({path:'data.cart.product', model:'Product'}, function(error, user){
+        var total = 0;
+        _.each(user.data.cart, function(item){
+          total += item.product.internal.approximatePriceUSD * item.quantity;
+        });
+        Stripe.charges.create({
+          amount:Math.ceil(total*100),
+          currency:'usd',
+          source:req.body.stripeToken,
+          description:"Example"
+        },function(err, charge){
+          if(err && err.type === 'StripeCardError'){
+            return res.status(status.BAD_REQUEST).json({error:err.toString()});
+          }
+
+      if(err){
+        return res.status(status.INTERNAL_SERVER_ERROR).json({error:err.toString()});
+      }
+      req.user.data.cart = [];
+      req.user.save(function(){
+        return res.json({id: charge.id});
+      }
+    );
+  });
+
+      });
     };
+  }));
+
+  api.get('/product/text/:query', wagner.invoke(function(Product){
+    return function(req, res){
+      Product.find({
+        $text :{$search : req.params.query},
+        score: {$meta : 'textScore'}
+      }).sort({score : {$meta : 'textScore'}}). limit(10).exec(handleRes.bind(null, 'product', res))
+    }
   }));
   return api;
 };
